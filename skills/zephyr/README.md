@@ -51,3 +51,9 @@ verify that `git status --short` contains no `.zephyr-skills/` paths.
 Reproduce and isolate Zephyr build, toolchain, QEMU, boot, board, or runtime
 failures. Use targeted Zephyr logging, QEMU GDB stubs, or OpenOCD and J-Link
 remote debugging according to the target and available tools.
+
+### `zephyr-explore`
+
+Investigate Zephyr source, branch history, external precedent, and design
+constraints before making changes. Use it to clarify current behavior,
+maintainer boundaries, and compatibility requirements.

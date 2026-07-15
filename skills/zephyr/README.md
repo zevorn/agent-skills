@@ -57,3 +57,9 @@ remote debugging according to the target and available tools.
 Investigate Zephyr source, branch history, external precedent, and design
 constraints before making changes. Use it to clarify current behavior,
 maintainer boundaries, and compatibility requirements.
+
+### `zephyr-patch-review`
+
+Review Zephyr diffs or patch stacks for correctness, integration impact, test
+coverage, reviewer boundaries, and merge readiness. Report only actionable,
+source-backed findings.

@@ -63,3 +63,10 @@ maintainer boundaries, and compatibility requirements.
 Review Zephyr diffs or patch stacks for correctness, integration impact, test
 coverage, reviewer boundaries, and merge readiness. Report only actionable,
 source-backed findings.
+
+### `zephyr-safety-evidence`
+
+Plan or review Zephyr safety evidence, requirements traceability, and
+certification gaps for ASIL, ISO 26262, IEC 61508, SIL, MC/DC, HARA,
+FMEA/FMEDA, and tool qualification work. It never presents draft or partial
+evidence as completed certification.

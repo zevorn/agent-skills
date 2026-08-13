@@ -1,7 +1,8 @@
 # Zephyr Agent Skills
 
 Agent skills for [Zephyr Project](https://www.zephyrproject.org/) development,
-debugging, exploration, patch review, and safety evidence work.
+debugging, exploration, patch review, patch simplification, and safety evidence
+work.
 
 Source repository: <https://github.com/processmission/agent-skills>
 
@@ -63,6 +64,12 @@ maintainer boundaries, and compatibility requirements.
 Review Zephyr diffs or patch stacks for correctness, integration impact, test
 coverage, reviewer boundaries, and merge readiness. Report only actionable,
 source-backed findings.
+
+### `zephyr-patch-simplify`
+
+Reduce Zephyr code and model complexity while preserving required behavior.
+Use evidence to delete dead paths, deepen shallow modules, restore a single
+source of truth, and narrow unsupported modes.
 
 ### `zephyr-safety-evidence`
 

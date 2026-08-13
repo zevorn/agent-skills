@@ -28,7 +28,7 @@ Replace `<skill-name>` with a skill directory name. For other agents, copy it to
 
 | Skill category | Description |
 | --- | --- |
-| [Zephyr agent skills](skills/zephyr/README.md) | Reusable skills for Zephyr development, debugging, exploration, patch review, and safety evidence. |
+| [Zephyr agent skills](skills/zephyr/README.md) | Reusable skills for Zephyr development, debugging, exploration, patch review, simplification, and safety evidence. |
 
 ## Star History
 

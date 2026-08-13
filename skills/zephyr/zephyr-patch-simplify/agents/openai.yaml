@@ -1,0 +1,4 @@
+interface:
+  display_name: "Zephyr Patch Simplify"
+  short_description: "Reduce Zephyr code and model complexity safely"
+  default_prompt: "Use $zephyr-patch-simplify to reduce this Zephyr change without losing required behavior."

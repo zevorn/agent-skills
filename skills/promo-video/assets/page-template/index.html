@@ -1,0 +1,25 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 Process Mission -->
+<!-- SPDX-License-Identifier: MIT -->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>Promo video page</title>
+  <link rel="stylesheet" href="node_modules/@fontsource-variable/noto-sans-sc/index.css">
+  <link rel="stylesheet" href="node_modules/@fontsource-variable/inter-tight/index.css">
+  <link rel="stylesheet" href="node_modules/@fontsource-variable/jetbrains-mono/index.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="stage">
+    <div class="backdrop"></div>
+    <div id="scenes"></div>
+    <div id="subtitles"><span></span></div>
+  </div>
+  <div id="dev" hidden>
+    <button id="play">▶</button><input id="scrub" type="range" min="0" step="0.001"><span id="clock">0.00</span>
+  </div>
+  <script src="node_modules/gsap/dist/gsap.min.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>

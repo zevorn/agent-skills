@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 Process Mission
+# SPDX-License-Identifier: MIT
+
+interface:
+  display_name: "Promo Video"
+  short_description: "Frame-exact promo and comparison videos from code and real data, with original music, QA, covers, and a Process Mission watermark"
+  default_prompt: "Use $promo-video to make this video. Collect the real records first and build a fact-check table, write the storyboard, put scene starts on a bar grid, render picture assets from recorded data, compose the page from assets/page-template, render with scripts/render_frames.py, score it with compose_music.py and master_audio.py, run the picture and audio QA, add the default Process Mission watermark, and deliver covers, publishing copy, and a narration document with rebuild commands."

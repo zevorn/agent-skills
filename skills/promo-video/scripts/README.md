@@ -30,6 +30,9 @@ python3 "$SKILL_DIR/scripts/render_frames.py" mux out/film-silent.mp4 out/mix.wa
 ```
 
 - 页面目录通过本机 HTTP 服务提供；页面引用上级目录的素材时用 `--root` 指定服务根目录。
+- 转场与效果图库：把 `assets/motion/` 复制到页面目录（页面目录已经 `npm install`），用
+  `snap page/motion/gallery.html --root page --every 3 --out motion-sheet` 生成联系表，
+  `eval page/motion/gallery.html --root page "window.motionCatalog()"` 列出每一项的名称与时段。
 - `--scale 2` 以 2 倍像素密度截取 CSS 1920×1080 的页面，输出 3840×2160；截图使用 DevTools 协议的缩放裁剪，与 Playwright 原生高密度截图逐像素一致。
 - `full` 按 `--chunk` 秒分块，每个进程一个无头浏览器；页面崩溃或超时时重新打开并重试同一帧。分块目录名包含服务目录文件、渲染器、尺寸和缩放的指纹，内容不变时重新运行只渲染缺少的分块，`--fresh` 清空后重新开始。
 - 编码：1080p 为 `libx264 -preset slow -crf 16`，4K 为 `-preset medium -crf 15 -level 5.1`，均为 `yuv420p` 与 BT.709 标记。
@@ -79,6 +82,7 @@ python3 "$SKILL_DIR/scripts/qa_frames.py" out/film.mp4 --cues cues.json
 ```
 
 退出码 1 表示发现单帧闪烁、整帧亮度跳变或长黑场。闪烁判定要求该帧与前后两帧同向偏离，且前后两帧彼此接近；运动物体因此不会被误报。
+`--cues` 中 `impact` 与 `flash` 提示点前后 0.6 s、`transition` 提示点 `from` 到 `to` 时段内的跳变列入 `designed_hits`。
 
 ## av_sync.py
 

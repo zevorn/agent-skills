@@ -208,6 +208,8 @@ def merge_cues(plan: dict, cues: list[dict]) -> None:
                 round(pretty_midi.hz_to_note_number(freq))), 'amp': .08, 'duration': 1.0, 'ratio': 3.5, 'index': 1.2})
         elif kind == 'riser':
             plan.setdefault('risers', []).append({'end': time, 'duration': cue.get('dur', 3.0), 'amp': cue.get('amp', .25)})
+        elif kind == 'transition':
+            continue
         else:
             print(f'cue type {kind!r} at {time} s has no score mapping; skipped', file=sys.stderr)
 

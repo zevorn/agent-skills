@@ -13,7 +13,8 @@ import sys
 import numpy as np
 
 DESCRIPTION = ('Scan a rendered video for one-frame flashes and long near-black gaps. Designed hits listed in a cue '
-               'file (impact cues) are reported separately so intentional flashes do not hide real glitches.')
+               'file (impact, flash and transition cues) are reported separately so intentional flashes do not hide '
+               'real glitches.')
 WIDTH, HEIGHT = 160, 90
 
 
@@ -33,7 +34,8 @@ def frames(path: Path) -> np.ndarray:
 def main() -> None:
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('video', type=Path)
-    parser.add_argument('--cues', type=Path, help='cue JSON (list or {"cues": [...]}) whose impact times are designed hits')
+    parser.add_argument('--cues', type=Path,
+                        help='cue JSON (list or {"cues": [...]}) whose impact, flash and transition cues are designed hits')
     parser.add_argument('--flash', type=float, default=30.0,
                         help='block score that counts as a one-frame flash (ticking digits score 16-18, a terminal '
                              'scroll about 24, a flash 200+)')
@@ -47,8 +49,15 @@ def main() -> None:
     designed = []
     if args.cues:
         data = json.loads(args.cues.read_text(encoding='utf-8'))
-        designed = [cue['t'] for cue in (data['cues'] if isinstance(data, dict) else data) if cue['type'] in ('impact', 'flash')]
-    near_hit = lambda seconds: any(abs(seconds - t) < .25 for t in designed)
+        for cue in data['cues'] if isinstance(data, dict) else data:
+            if cue['type'] not in ('impact', 'flash', 'transition'):
+                continue
+            # Transition cues carry their own span; point cues get a fixed window around the hit.
+            if 'from' in cue and 'to' in cue:
+                designed.append((cue['from'] - .1, cue['to'] + .1))
+            else:
+                designed.append((cue['t'] - .6, cue['t'] + .6))
+    near_hit = lambda seconds: any(start <= seconds <= end for start, end in designed)
     flashes, designed_hits = [], []
     block = lambda image: image.reshape(HEIGHT // 10, 10, WIDTH // 10, 10).mean(axis=(1, 3))
     for k in range(1, len(video) - 1):

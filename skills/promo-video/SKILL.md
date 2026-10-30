@@ -3,51 +3,72 @@
 # SPDX-License-Identifier: MIT
 name: promo-video
 description: >-
-  Produce frame-exact promotional, comparison, and explainer videos from code and real data: a fact-checked
-  storyboard, a deterministic HTML compositor rendered frame by frame with headless Chromium, 1080p or 4K output,
-  an original score and cue-driven sound effects on a shared bar grid, loudness mastering, picture and audio QA,
-  covers, publishing copy, and a Process Mission watermark by default. Use for product films, OS or simulator
-  comparisons, platform showcases, and Bilibili or YouTube uploads.
+  Produce frame-exact promotional, comparison, and explainer videos from code and real data. Starts with a
+  requirements discussion and creative brief, then a fact-checked storyboard and a motion plan composed from a GSAP
+  transition and effect library (SplitText, DrawSVG, MorphSVG, MotionPath, Flip, ScrambleText), a deterministic
+  HTML compositor rendered frame by frame in headless Chromium at 1080p or 4K, an original score with cue-driven
+  sound effects on a shared bar grid, loudness mastering, picture and audio QA, covers, publishing copy, and a
+  Process Mission watermark by default. Use for product films, OS or simulator comparisons, platform showcases,
+  and Bilibili or YouTube uploads.
 ---
 
 # 代码渲染宣传片
 
 画面由代码逐帧算出，每一帧都是时间的纯函数；画面、数据、配乐与音效共用一份时间轴；片中的命令、输出和数字全部来自可以复现的记录。
-成片与封面默认加进程使命（Process Mission）水印。
+动画使用 GSAP，转场与效果按每支片子的目的和内容组合。成片与封面默认加进程使命（Process Mission）水印。
 
 ## 成片标准
 
+- **贴合需求**：风格、节奏和动效来自与需求方讨论后确认的创意简报；每支片子有自己的叙事结构、转场词汇和动效组合。
 - **真实**：每个数字在事实核对表中有出处；对比双方的配置差异写进画面脚注；测量范围写进文案文档。无法核实的产品说法交给用户确认后再使用。
 - **确定**：任意帧可以单独渲染，随机顺序与连续顺序渲染的结果一致，中断后可以接着渲染。
-- **同一时间轴**：场景起点、画面事件、配乐小节与音效提示点从同一个文件读取。修改时间只改这个文件。
+- **同一时间轴**：场景起点、转场、画面事件、配乐小节与音效提示点从同一个文件读取。修改时间只改这个文件。
 - **可读**：每一刻只有一个视觉焦点；字幕一次一句完整的话；文字不重叠、不出画，停留时间足够读完。
 - **声音**：原创配乐与程序合成音效；无旁白的成片约 −15 LUFS，有旁白约 −14 LUFS，真峰值不高于 −1 dBTP。
-- **可重建**：交付时附带分镜、数据来源、测量范围与重新生成命令。
+- **可重建**：交付时附带简报、分镜、动效计划、数据来源、测量范围与重新生成命令。
 
 ## 工作流程
 
-1. **收集事实与素材**：找到实验记录、日志、仓库文件和已有渲染结果；列出每个候选数字的来源、条件和负载。产品能力的描述（例如“统一开发体验”）单独列出，交给用户核实。
-2. **叙事与分镜**：按“开场钩子 → 主张 → 方法或平台 → 逐项实测 → 收尾”组织，让后面的实测逐条回应前面的主张。写分镜表、事实核对表与字幕。见 [叙事、分镜与事实核对](references/storyboard.md)。
-3. **时间轴**：选定速度（120 BPM 时一小节 2 秒），用 `scripts/tempo_grid.py` 把场景起点放到小节线或半小节上；画面内事件的偏移量写进同一个时间轴文件。
-4. **画面素材**：机器人、物理场景、芯片等三维画面用实际记录离线渲染成图片序列（目标分辨率的 2 倍超采样）；网页界面、终端与控制面板按视频风格重新绘制，数值逐帧回放记录。需要 4K 时素材按 2 倍尺寸渲染。
-5. **合成页面**：从 `assets/page-template/` 开始，实现 `window.ready`、`window.FPS`、`window.DURATION` 与 `window.renderFrame(frame)`，提示点通过 `window.getCues()` 导出，字幕通过 `window.getSubtitles()` 导出。见 [合成页面约定](references/page-contract.md)。
-6. **预览与画面质检**：每个转场前后与每段中间截帧拼成联系表；运行 `qaText` 检查文字几何；`render_frames.py check` 对比直接跳转与连续推进的渲染结果，`subtitles` 检查字幕位置并导出 SRT。见 [质检](references/qa.md)。
-7. **配乐、音效与旁白**：写音乐计划，`scripts/compose_music.py` 生成配乐并合入页面提示点；`scripts/master_audio.py` 做电平推子、旁白闪避与母带；`scripts/analyze_audio.py` 检查分段响度与频段分布。见 [配乐、音效与旁白](references/audio.md)。
-8. **渲染与合成**：`scripts/render_frames.py full` 分块并行渲染（`--scale 2` 输出 3840×2160），`mux` 合入音轨；`scripts/qa_frames.py` 扫描单帧闪烁与长黑场，`scripts/av_sync.py` 测量重击处音画偏移。
-9. **水印**：`scripts/watermark.py video` 与 `scripts/watermark.py image` 给成片和封面加水印，默认使用进程使命标志，按所在角落的亮度自动选择浅色或深色版本。
-10. **封面与发布文案**：用实测同一时刻的真实画面制作 16:9 与 4:3 封面，在缩略图尺寸检查可读性；写标题、简介、章节与标签。见 [封面、水印与发布](references/delivery.md)。
-11. **交付**：成片（按需 1080p 与 4K）、音乐文件、封面、文案文档（分镜与旁白、音乐结构、数据来源、测量范围、重新生成命令）。
+1. **需求讨论**：与需求方分轮讨论目的、观众、平台、时长、必须出现的事实、品牌、风格参考、声音与交付；用转场与效果的联系表帮助对方表达偏好。结果写成创意简报，确认后再开始。见 [需求讨论与创意简报](references/brief.md)。
+2. **收集事实与素材**：找到实验记录、日志、仓库文件和已有渲染结果；列出每个候选数字的来源、条件和负载。产品能力的描述单独列出，交给用户核实。
+3. **叙事与分镜**：按简报选择叙事结构，写分镜表、事实核对表与字幕。见 [叙事、分镜与事实核对](references/storyboard.md)。
+4. **动效计划**：按简报确定动效性格与 3–5 种转场的用途，逐场景选择效果、参数与节拍，写成动效计划表并确认；库里没有合适的效果时编写新效果。见 [动效与转场](references/motion.md)。
+5. **时间轴**：选定速度（120 BPM 时一小节 2 秒），用 `scripts/tempo_grid.py` 把场景起点放到小节线或半小节上；转场与画面内事件的时间写进同一个时间轴文件。
+6. **画面素材**：机器人、物理场景、芯片等三维画面用实际记录离线渲染成图片序列（目标分辨率的 2 倍超采样）；网页界面、终端与控制面板按视频风格重新绘制，数值逐帧回放记录。需要 4K 时素材按 2 倍尺寸渲染。
+7. **合成页面**：页面按 [合成页面约定](references/page-contract.md) 实现，动画用 `assets/motion/motion.js` 与 GSAP 编写。`assets/page-template/` 演示约定与组合方式，场景内容、版式和动效按本片的分镜与动效计划重新编写。
+8. **风格确认与画面质检**：先渲染风格帧与 10–20 秒样片请用户确认；再在每个转场前后与每段中间截帧拼成联系表，运行 `qaText`、`render_frames.py check` 与 `subtitles`。见 [质检](references/qa.md)。
+9. **配乐、音效与旁白**：写音乐计划，`scripts/compose_music.py` 生成配乐并合入页面提示点；`scripts/master_audio.py` 做电平推子、旁白闪避与母带；`scripts/analyze_audio.py` 检查分段响度与频段分布。见 [配乐、音效与旁白](references/audio.md)。
+10. **渲染与合成**：`scripts/render_frames.py full` 分块并行渲染（`--scale 2` 输出 3840×2160），`mux` 合入音轨；`scripts/qa_frames.py` 扫描单帧闪烁与长黑场，`scripts/av_sync.py` 测量重击处音画偏移。
+11. **水印**：`scripts/watermark.py video` 与 `scripts/watermark.py image` 给成片和封面加水印，默认使用进程使命标志，按所在角落的亮度自动选择浅色或深色版本。
+12. **封面与发布文案**：用实测同一时刻的真实画面制作 16:9 与 4:3 封面，在缩略图尺寸检查可读性；写标题、简介、章节与标签。见 [封面、水印与发布](references/delivery.md)。
+13. **交付**：成片（按需 1080p 与 4K）、音乐文件、封面、文案文档（简报、分镜与旁白、动效计划、音乐结构、数据来源、测量范围、重新生成命令）。
 
 ## 规则
 
+- 动手之前完成需求讨论；简报中的待确认事项清空后再进入分镜。
+- 模板与图库用来理解约定和挑选效果，每支片子的场景、版式和动效组合都按本片重新设计；同一种转场不连续使用，作为主题反复出现的除外。
+- 效果的选择由内容决定：数字、连线、层级、流动、状态切换各有对应的效果；参数随场景变化。
+- 新写或修改的效果通过 `render_frames.py check` 后再用于成片。
 - 画面中的每个数字、命令和输出都能追溯到记录；记录里没有的量不画进画面。只有部分条件成立的结果，在同一画面写明条件。
 - 对比双方的版本、配置或算法有差异时（例如一方启用了额外控制器或优化参数），在该段脚注中写明；结论只覆盖测量过的范围。
 - 演示的系统与实际产品形态有区别时（例如只运行了产品的一部分），在文案文档的测量范围中写明，画面用词与实际运行内容一致。
 - 用户提供的产品描述保持原意；扩写出的具体能力在交付说明中列出，请用户核实。
 - 网页或终端画面按视频风格重绘时，保留原界面的结构与配色关系，数值来自运行记录；记录缺少的字段不显示。
-- 转场时上一段的标题先淡出，下一段标题再进入，避免同位置标题叠化。
 - 修改时间后重新生成配乐，并在新画面上复查每个音画同步点。
 - 不在交付内容中保留修改过程；文案只描述成片的最终状态。
+
+## 资源
+
+| 路径 | 内容 |
+| --- | --- |
+| `assets/motion/motion.js` | GSAP 转场 12 种、效果 18 种、确定的随机数、动效性格、`renderAt` |
+| `assets/motion/gallery.html` | 逐个演示全部转场与效果的页面，用于挑选与向需求方展示 |
+| `assets/page-template/` | 合成页面约定的示例：时间轴驱动的转场、效果组合、字幕、提示点、文字检查 |
+| `assets/music/promo.orc` | Csound 乐器 |
+| `assets/watermark/` | 进程使命标志的浅色与深色版本 |
+
+GSAP 通过 npm 安装（`gsap` 3.15，全部插件免费可商用）；API 细节可以安装 GreenSock 官方的
+[gsap-skills](https://github.com/greensock/gsap-skills)。
 
 ## 脚本
 

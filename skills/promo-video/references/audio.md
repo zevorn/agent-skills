@@ -3,6 +3,8 @@
 
 # 配乐、音效与旁白
 
+配乐的风格、计划与编曲见 [配乐](music.md)。本文说明小节网格、音效、旁白与母带。
+
 ## 小节网格
 
 - 速度取整数：120 BPM 时一拍 0.5 s、一小节 2 s，场景起点、重击与段落切换都落在小节线上。
@@ -10,23 +12,12 @@
   移动不超过 1 s 的起点通常不影响内容，移动后重新渲染画面。
 - 有旁白时以旁白时长排布场景：每段结束时间向上取整到小节线，富余的小节分给可以拉长的段落。
 
-## 音乐计划
+## 音效
 
-`scripts/compose_music.py plan.json music.wav --cues cues.json` 读取下面的计划，生成 Csound 乐谱，
-用 `assets/music/promo.orc` 渲染 48 kHz 32 位浮点 WAV。
+音乐计划中的音效列表与页面提示点由 `compose_music.py` 一起写进乐谱：
 
 ```json
 {
-  "bpm": 120,
-  "duration": 168,
-  "scale": ["D", "F", "G", "A", "C"],
-  "sections": [
-    {"name": "open", "start": 0, "end": 6, "chords": ["Dm"], "bars_per_chord": 3, "level": -2,
-     "layers": {"drone": 0.18, "ticks": 0.05}},
-    {"name": "part3", "start": 98, "end": 158, "chords": ["Dm", "Bb", "F", "C"], "bars_per_chord": 1, "level": 0,
-     "layers": {"pad": 0.12, "bass": 0.33, "arp": 0.085, "kick": 0.82, "clap": 0.5, "hats": 0.11},
-     "hats_mode": "sixteen", "cutoff": 2600, "brightness": 0.72, "bass_cutoff": 950}
-  ],
   "hits": [{"t": 6, "amp": 0.95, "shimmer": 0.55}],
   "risers": [{"end": 6, "duration": 3, "amp": 0.22}],
   "swells": [{"end": 6, "duration": 1.6, "chord": "Dm", "amp": 0.16}],
@@ -39,26 +30,18 @@
 
 | 字段 | 含义 |
 | --- | --- |
-| `sections[].chords` | 和弦符号（pychord 解析），按 `bars_per_chord` 小节循环 |
-| `sections[].layers` | 各声部振幅：`drone`、`pad`、`bass`、`arp`、`arp_high`、`kick`、`clap`、`hats`、`ticks` |
-| `sections[].level` | 该段的推子电平（dB），由 `master_audio.py --plan` 在段落之间平滑过渡 |
-| `cutoff` / `bass_cutoff` / `brightness` | 铺底滤波、贝斯滤波、琶音亮度（0–1） |
-| `duck` | 底鼓对铺底的侧链压缩深度，默认有底鼓时 0.45 |
-| `hats_mode` | `eighth`（反拍八分）或 `sixteen`（十六分） |
-| `hits` / `risers` / `swells` / `rolls` | 重击、上升音效、反向渐强、军鼓滚奏 |
+| `hits` | 重击。叠加哪些层由风格的 `fx.hit` 决定：电影感低频重击（`impact`）、底鼓、镲片、门限军鼓，或 SoundFont 的定音鼓与管弦乐重击 |
+| `risers` | 在 `end` 时刻结束、持续 `duration` 秒的上升音效。风格的 `fx.riser` 选择噪声上升（`riser`）、反向镲片（`reverse`）或和弦渐强（`swell`） |
+| `swells` | 指定和弦的反向渐强 |
+| `rolls` | 滚奏，从 `low` 渐强到 `high`；风格的 `fx.roll` 选择所用的鼓 |
 | `thuds` / `bells` / `chimes` | 撞击声、铃音旋律、成功提示音（`bright` 为明亮版本） |
-| `scale` | 页面 `blip` 提示点吸附到的音阶 |
 
-页面提示点的映射：`impact` → 重击，`thud` → 撞击声，`chime` → 提示音，`blip` → 吸附到音阶的短铃音，`riser` → 以该时刻结束的上升音效。
+页面提示点的映射：`impact` → 重击，`thud` → 撞击声，`chime` → 提示音，`blip` → 吸附到当前调内音阶的短铃音，`riser` → 以该时刻结束的上升音效。
 `transition` 提示点只用于画面质检，配乐脚本跳过它；转场需要的声音由页面另外发出 `riser` 或 `impact`，按转场的性格选择（色带、形状变形配上升音效，闪白、故障切换配重击，叠化可以不配音效）。
 
-## 和声与段落
-
-- 小调更适合技术产品：i–VI–III–VII（Dm–Bb–F–C）每两小节一换适合讲解段，每小节一换适合实测段；收尾转到同主音大调（D）。
-- 进入新段落前一小节放属和弦（A）或上升音效，下一段第一拍放重击。重击前 0.2–0.3 s 把配乐压低几 dB，重击时底鼓、镲片与次低频同时落下，落差更明显。
-- 旋律音放在和弦音或九音上；成功提示音（D6 + A6）与当前和弦相容。
-- 能量逐段上升：开场与讲解段 −5 至 −2 dB，平台段 −2 至 −1 dB，实测段 0 dB，收尾重击后回落。
-- 画面事件对应音效：推力出现配撞击声，“控制就绪”“恢复站立”“完成”配提示音（产品方明亮，基准方柔和），数据画面叠加高频节拍声。
+- 进入新段落前一小节放上升音效、加花或属和弦，下一段第一拍放重击；重击时底鼓、镲片与低频同时落下，落差更明显。
+- 画面事件对应音效：推力出现配撞击声，“控制就绪”“恢复站立”“完成”配提示音（产品方明亮，基准方柔和），数据画面可以叠加高频节拍声。
+- 重击与提示音的音色跟随风格：管弦乐风格用定音鼓和管弦乐重击，原声风格用底鼓和镲片，电子风格用低频重击。
 
 ## 旁白
 
@@ -70,17 +53,14 @@
 
 ```sh
 python3 scripts/master_audio.py music.wav mix.wav --plan plan.json --target -15 --ceiling -1.5
-python3 scripts/analyze_audio.py mix.wav --plan plan.json --spectrum spectrum.png --wave wave.png
+python3 scripts/analyze_audio.py mix.wav --plan plan.json --profile --spectrum spectrum.png --wave wave.png
 ```
 
+- 母带流程：段落推子、整体均衡（低频与高频搁架取自风格的 `master`）与压缩，然后用 FFmpeg 的前瞻限制器（`alimiter`）把响度提到目标，同时保持 4 倍过采样测得的真峰值不超过上限。
 - 响度：无旁白 −15 LUFS，有旁白 −14 LUFS；真峰值不高于 −1.5 dBTP（AAC 编码后约 −1 dBTP）。
-- 频段能量占比的参考值：sub −8、bass −3、low-mid −7、mid −12、presence −18、air −24 dB。
-  低频过重时降低贝斯的正弦低音层、持续音和重击，铺底加 150 Hz 高通；中高频不足时提高琶音、镲片和铃音，母带高架提升 1–2 dB。
+- 报告中的 `limiter_depth_db` 是峰值被压低的量，通常在 3 dB 以内；超过 6 dB 时检查重击、鼓组与起音很快的音色是否过响。
+- 电子风格的频段能量占比参考值：sub −8、bass −3、low-mid −7、mid −12、presence −18、air −24 dB。其他风格与需求方的参考曲目对比（`--compare`）。
+  低频过重时降低贝斯、808、持续音和重击；中高频不足时提高琶音、镲片和铃音，或在风格的 `master` 中提高高频搁架。
 - 波形图应能看出段落起伏；频谱图上重击、上升音效与段落切换的位置应与分镜一致。
 - 成片合成后用 `ffmpeg -i film.mp4 -map 0:a -af ebur128=peak=true -f null -` 复核成片响度。
-- 智能体无法试听时，以响度、频段占比、频谱图、波形图和音画同步测量作为验收依据，并在交付说明中写明检查方式。
-
-## 其他音色来源
-
-- 钢琴、弦乐、合唱可以用 FluidSynth 渲染 SoundFont（例如 GeneralUser GS），MIDI 由 `pretty_midi` 生成；使用前确认音色库许可。
-- 也可以用 NumPy/SciPy 合成并以 Pedalboard 处理效果，结构与本计划一致即可。
+- 智能体无法试听时，以响度、频段占比、调内占比、频谱图、波形图和音画同步测量作为验收依据，并在交付说明中写明检查方式。

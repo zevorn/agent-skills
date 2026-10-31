@@ -12,8 +12,17 @@ python3 -m venv .venv
 .venv/bin/python -m playwright install chromium
 ```
 
-外部程序：FFmpeg（全部视频与音频处理）、Csound（`compose_music.py`）、Node.js 与 npm（合成页面模板的字体与 GSAP）。
-macOS：`brew install ffmpeg csound node`；Debian / Ubuntu：`apt install ffmpeg csound nodejs npm`。
+外部程序：FFmpeg（全部视频与音频处理、母带的前瞻限制器）、Csound（`compose_music.py` 的合成器与鼓组）、
+FluidSynth（`compose_music.py` 的 SoundFont 音轨）、Node.js 与 npm（合成页面模板的字体与 GSAP）。
+macOS：`brew install ffmpeg csound fluid-synth node`；Debian / Ubuntu：`apt install ffmpeg csound fluidsynth nodejs npm`。
+
+SoundFont 音轨需要一个 General MIDI SoundFont，推荐 MuseScore_General.sf3（MIT 许可）：
+
+```sh
+mkdir -p ~/.local/share/soundfonts
+curl -L -o ~/.local/share/soundfonts/MuseScore_General.sf3 \
+  https://ftp.osuosl.org/pub/musescore/soundfont/MuseScore_General/MuseScore_General.sf3
+```
 
 ## render_frames.py
 
@@ -53,11 +62,16 @@ python3 "$SKILL_DIR/scripts/watermark.py" video in.mp4 out.mp4 --text "进程使
 ## compose_music.py
 
 ```sh
+python3 "$SKILL_DIR/scripts/compose_music.py" --list
+python3 "$SKILL_DIR/scripts/compose_music.py" --preview out/previews --only lofi,acoustic,piano-strings
 python3 "$SKILL_DIR/scripts/compose_music.py" plan.json out/music.wav --cues cues.json
+python3 "$SKILL_DIR/scripts/compose_music.py" plan.json out/music.wav --styles my-styles --soundfont /path/to/gm.sf3
 ```
 
-生成 `out/music.sco` 与 32 位浮点 WAV（48 kHz 立体声，含混响尾音）。场景起点不在小节线上时打印提示。
-计划格式见 [配乐、音效与旁白](../references/audio.md)。
+- 输出 32 位浮点 WAV（48 kHz 立体声，含混响尾音）、`out/music.sco` 与 `out/music.stems/`（Csound 输出、鼓组母线、每个 SoundFont 音轨的 MIDI 与 WAV）。
+- 场景起点不在小节线上时打印提示；计划引用了不存在的风格、音轨、模式、音色或和弦时退出并说明原因。
+- 计划用到 SoundFont 音轨而找不到 FluidSynth 或 SoundFont 时退出；查找顺序见 [配乐](../references/music.md)。
+- 计划格式、风格字段与模式类型见 [配乐](../references/music.md)。
 
 ## master_audio.py
 
@@ -66,14 +80,20 @@ python3 "$SKILL_DIR/scripts/master_audio.py" out/music.wav out/mix.wav --plan pl
 python3 "$SKILL_DIR/scripts/master_audio.py" out/music.wav out/mix.wav --plan plan.json --voice voice.wav --sfx sfx.wav --target -14
 ```
 
-输出 24 位 WAV 与 JSON 报告（整体与分段响度、真峰值、限制器深度）。限制器从 1 dB 开始逐级加深，直到响度达标后的真峰值不高于 `--ceiling`。
+输出 24 位 WAV 与 JSON 报告（整体与分段响度、真峰值、峰值压低量、所用的搁架滤波）。低频与高频搁架默认取计划所用风格的 `master`。
+限制使用 FFmpeg `alimiter`（5 ms 前瞻、延迟补偿）：先把增益提到响度目标，再逐步降低限制电平，直到 4 倍过采样的真峰值不高于 `--ceiling`。
 
 ## analyze_audio.py
 
 ```sh
 python3 "$SKILL_DIR/scripts/analyze_audio.py" out/mix.wav --plan plan.json --spectrum out/spectrum.png --wave out/wave.png
 python3 "$SKILL_DIR/scripts/analyze_audio.py" out/mix.wav --every 20
+python3 "$SKILL_DIR/scripts/analyze_audio.py" ref.wav --profile --json ref.json
+python3 "$SKILL_DIR/scripts/analyze_audio.py" out/mix.wav --plan plan.json --compare ref.json
 ```
+
+`--profile` 用 librosa 测量速度、每秒起音数、频谱重心中位数、响度范围（3 s 短期响度的 10%–95% 区间）与音级分布；计划写有调性时，报告谐波部分落在调内的能量占比。
+参考曲目先用 `ffmpeg -i ref.m4a ref.wav` 转成 WAV。
 
 ## qa_frames.py
 

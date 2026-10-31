@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 Process Mission
 # SPDX-License-Identifier: MIT
+librosa>=0.10
+music21>=9.1
 numpy>=2.0
 pedalboard>=0.9
 pillow>=11.0
